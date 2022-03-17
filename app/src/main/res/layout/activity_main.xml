@@ -7,18 +7,7 @@
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".MainActivity">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="Current Location in Latitude and Longitude:"
-        android:textAlignment="center"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        android:textIsSelectable="true"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginLeft="10dp"
-        android:gravity="center_horizontal" />
+
     <TextView
         android:id="@+id/latitudeText"
         android:text="@string/latitudeBabel"
@@ -42,4 +31,5 @@
         android:textSize="24sp"
         android:textStyle="bold"
         android:layout_marginLeft="10dp" />
+
 </LinearLayout>
