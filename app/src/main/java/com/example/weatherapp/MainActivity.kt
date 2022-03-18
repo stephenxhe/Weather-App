@@ -17,7 +17,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonArrayRequest
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.google.android.gms.location.*
+import org.json.JSONObject
 
 
 open class MainActivity : AppCompatActivity() {
@@ -31,6 +39,8 @@ open class MainActivity : AppCompatActivity() {
     lateinit var latitudeText: TextView
     lateinit var longitudeText: TextView
 
+    lateinit var queue: RequestQueue
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE);//will hide the title
@@ -41,6 +51,8 @@ open class MainActivity : AppCompatActivity() {
         longitudeText = findViewById<View>(R.id.longitudeText) as TextView
 
         mLocationRequest = LocationRequest()
+
+        queue = Volley.newRequestQueue(this)
 
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -96,16 +108,52 @@ open class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun getWeatherInfo(woeid: Int) {
+        val url = "https://www.metaweather.com/api/location/${woeid}"
+        val request = JsonArrayRequest(Request.Method.GET, url, null,
+                { res ->
+                    val response = res as JSONObject
+
+                    val days = response.getJSONArray("consolidated_weather")
+                    val today = days[0] as JSONObject
+                },
+                { error ->
+                    println(error)
+                }
+        )
+
+        queue.add(request)
+    }
+
+    private fun getLocationID(location: Location) {
+        val lattlong = "${mLastLocation.latitude},${mLastLocation.longitude}"
+
+        val url = "https://www.metaweather.com/api/location/search/?lattlong=${lattlong}"
+        val request = JsonArrayRequest(Request.Method.GET, url, null,
+                { response ->
+                    val city = response[0] as JSONObject
+                    val woeid = city.getInt("woeid")
+                    getWeatherInfo(woeid)
+                },
+                { error ->
+                    println(error)
+                }
+        )
+
+        queue.add(request)
+    }
+    
     fun onLocationChanged(location: Location) {
         // New location has now been determined
-        mLastLocation = location
-        latitudeText.text = "LATITUDE : " + mLastLocation.latitude
-        longitudeText.text = "LONGITUDE : " + mLastLocation.longitude
-
-        val lattlong = "${mLastLocation.latitude},${mLastLocation.longitude}"
-        println("https://www.metaweather.com/api/location/search/?lattlong=${lattlong}")
-        // You can now create a LatLng Object for use with maps
-        mFusedLocationProviderClient?.removeLocationUpdates(mLocationCallback)
+        if (location != null) {
+            mLastLocation = location
+            latitudeText.text = "LATITUDE : " + mLastLocation.latitude
+            longitudeText.text = "LONGITUDE : " + mLastLocation.longitude
+            
+            getLocationID(location)
+            // You can now create a LatLng Object for use with maps
+            mFusedLocationProviderClient?.removeLocationUpdates(mLocationCallback)
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
