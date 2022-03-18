@@ -1,7 +1,6 @@
 package com.example.weatherapp
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,10 +10,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import android.view.Window
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -28,14 +25,8 @@ open class MainActivity : AppCompatActivity() {
     private val INTERVAL: Long = 2000
     private val FASTEST_INTERVAL: Long = 1000
     lateinit var mLastLocation: Location
-    internal lateinit var mLocationRequest: LocationRequest
+    private lateinit var mLocationRequest: LocationRequest
     private val REQUEST_PERMISSION_LOCATION = 10
-
-//    lateinit var btnStartupdate: Button
-//    lateinit var btnStopUpdates: Button
-//    lateinit var txtLat: TextView
-//    lateinit var txtLong: TextView
-//    lateinit var txtTime: TextView
 
     lateinit var latitudeText: TextView
     lateinit var longitudeText: TextView
@@ -94,14 +85,7 @@ open class MainActivity : AppCompatActivity() {
             return
         }
 
-        mFusedLocationProviderClient!!.lastLocation
-                .addOnSuccessListener { location: Location ->
-                    if (location != null) {
-                        println("found location")
-                        onLocationChanged(location)
-                    }
-                }
-//        mFusedLocationProviderClient!!.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.getMainLooper())
+        mFusedLocationProviderClient!!.requestLocationUpdates(mLocationRequest, mLocationCallback, Looper.getMainLooper())
     }
 
     private val mLocationCallback = object : LocationCallback() {
@@ -117,7 +101,11 @@ open class MainActivity : AppCompatActivity() {
         mLastLocation = location
         latitudeText.text = "LATITUDE : " + mLastLocation.latitude
         longitudeText.text = "LONGITUDE : " + mLastLocation.longitude
+
+        val lattlong = "${mLastLocation.latitude},${mLastLocation.longitude}"
+        println("https://www.metaweather.com/api/location/search/?lattlong=${lattlong}")
         // You can now create a LatLng Object for use with maps
+        mFusedLocationProviderClient?.removeLocationUpdates(mLocationCallback)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
